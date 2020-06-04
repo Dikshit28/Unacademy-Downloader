@@ -3,8 +3,10 @@
 Created on Sun Mar 26 16:36:17 2017
 @author: Jeyaprabu J
 """
+from urllib3 import request
+
 from bs4 import BeautifulSoup
-from urllib import urlretrieve
+import urllib.request,urllib.parse,urllib.error
 import requests
 import re
 import os
@@ -18,16 +20,16 @@ def down_audio(img_link, lesson_name):
     aud_link = "https://player.unacademy.link/lesson-raw/" + code + "/audio."
     #    print("\nDownloading Audio - "+lesson_name+" -"),
     try:
-        ret = urlretrieve(aud_link + "mp4", lesson_name + ".mp4")
+        ret = urllib.request.urlopen(aud_link + "mp4", lesson_name + ".mp4")
         if (ret[1]["Content-Type"]) == "application/xml":
-            ret = urlretrieve(aud_link + "mp3", lesson_name + ".mp3")
+            ret = urllib.request.urlopen(aud_link + "mp3", lesson_name + ".mp3")
         print("\nDownloaded Audio ", lesson_name, " -", (int(ret[1]["Content-Length"]) / 1024), "KB")
     except:
         print("Download Error")
 
 
 def down_slides(url, lesson_name, num=100):
-    pos = len(url) if (url.find("?") is -1) else url.find("?")
+    pos = len(url)if (url.find("?") == -1) else url.find("?")
     url = url[0:pos]
     u = re.search('(.*/).*\..*', url).group(1)
     ext = re.search('.*\.(.*)\?*.*', url).group(1)
@@ -37,16 +39,16 @@ def down_slides(url, lesson_name, num=100):
         name = lesson_name + "_" + str(i) + "." + ext
         print("Downloading Slide : %s -" % name)
         try:
-            ret = urlretrieve(link, name)
+            ret = urllib.request.urlopen(link, name)
             if ret[1]["Content-Length"] == "0":
                 os.remove(name)
                 print(
-                "Not Available")
+                    "Not Available")
                 return
             print((int(ret[1]["Content-Length"]) / 1024), "KB")
         except:
             print(
-            "Download Error")
+                "Download Error")
 
 
 def image_link(lesson, aud, width, lesson_number=1):
@@ -58,7 +60,7 @@ def image_link(lesson, aud, width, lesson_number=1):
     img_link = img_link + "?dpr=1&fit=clip&w=" + width + "&fm=webp"
     print(img_link)
     lesson_name = str(lesson_number)
-    print(lesson_name = str(lesson_number) + "_" + re.search("\/lesson\/(.*)\/", lesson).group(1))
+    print(lesson_name=str(lesson_number) + "_" + re.search("\/lesson\/(.*)\/", lesson).group(1))
     if aud == "y":
         s = Thread(target=down_audio, args=(img_link, lesson_name))
         t.append(s)
@@ -69,18 +71,18 @@ def image_link(lesson, aud, width, lesson_number=1):
 def start_download():
     # link of first video of a lesson_name
     global width
-    root = raw_input("Enter Unacademy URL: ")
+    root = input("Enter Unacademy URL: ")
     try:
         lesson_name = requests.get(root)
     except:
         print(
-        "Enter Valid Unacademy URL")
+            "Enter Valid Unacademy URL")
         return
     data = lesson_name.text
     soup = BeautifulSoup(data)
     lesson = list()
     print(
-    "1. Whole lesson_name\n2. Particular Lesson")
+        "1. Whole lesson_name\n2. Particular Lesson")
     choice = int(input("Enter the Download Choice: "))
     aud = input("Need Audio? (y,n) :")
     width = input("Width (normally 960) :")
@@ -93,7 +95,7 @@ def start_download():
             break
         except:
             print(
-            "Error While Creating Directory...Check if directory already Exist")
+                "Error While Creating Directory...Check if directory already Exist")
             continue
 
     if choice == 1:
@@ -113,20 +115,20 @@ def start_download():
         image_link(root, aud, width)
 
     print(
-    "Waiting for All Downloads to Complete")
+        "Waiting for All Downloads to Complete")
     for i in t:
         i.join()
     print(
-    "Downloads Completed")
+        "Downloads Completed")
     os.chdir(cwd)
 
 
 print(
-"Welcome to Unacademy Downloader")
+    "Welcome to Unacademy Downloader")
 while 1:
     start_download()
     print(
-    "1. Download Another Course\n2. Exit")
+        "1. Download Another Course\n2. Exit")
     choice = input("Enter your Choice :")
     if choice == "1":
         continue
